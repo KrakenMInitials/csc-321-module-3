@@ -1,4 +1,5 @@
 from Crypto.Cipher import AES
+import hashlib
 from hashlib import sha256
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad
@@ -36,12 +37,23 @@ def main():
     print("Alice's computed shared secret:", alices_shared_secret)
     print("Bob's computed shared secret:", bobs_shared_secret)
 
-    print(f"Alice and Bob have the same key {alices_shared_secret == bobs_shared_secret}")
+    print(f"Alice and Bob have the same secret: {alices_shared_secret == bobs_shared_secret}")
 
-    symmetric_key = bobs_shared_secret
-    key = sha256(symmetric_key) #create a hash of the secret 
-    key = # get the 1st 16 bytes for AES CBC key generation
-    cipher = AES.new(key)
+    #Alice's derived key
+    alices_symmetric_key = int.to_bytes(alices_shared_secret)
+    alices_key = hashlib.sha256(alices_symmetric_key).digest() #create a hash of the secret 
+    alices_key = alices_key[:16] #truncate to 16 bytes
+    print("Alice's derived key", alices_key.hex())
+
+    #Bob's derived key
+    bobs_symmetric_key = int.to_bytes(bobs_shared_secret)
+    bobs_key = hashlib.sha256(bobs_symmetric_key).digest() #create a hash of the secret 
+    bobs_key = bobs_key[:16] #truncate to 16 bytes
+    print("Bob's derived key", bobs_key.hex())
+
+    print(f"Alice and Bob have the same key: {alices_key == bobs_key}")
+
+    #cipher = AES.new(key)
     
 
 if __name__ == "__main__": 
