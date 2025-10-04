@@ -24,11 +24,13 @@ DF1FB2BC 2E4A4371"""
 p_cleaned = p_hex.replace("\n", "").replace(" ", "")
 p = int(p_cleaned, 16)
 
+IV = get_random_bytes(16) 
+
+#THESE ARE PRIVATE (MALLORY DON'T KNOW)
 ALICE_SECRET_KEY = random.randint(1, p-2)
 BOB_SECRET_KEY = random.randint(1, p-2)
 ALICES_MESSAGE = "Hi Bob!"
 BOBS_MESSAGE = "Hi Alice!"
-IV = get_random_bytes(16) 
 
 
 def main():  
