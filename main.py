@@ -10,9 +10,9 @@ p = 37
 ALICE_SECRET_KEY = 8
 BOB_SECRET_KEY = 15
 ALICES_MESSAGE = "Hi Bob!"
-BOBS_MESSAGE = "Hi Alices!"
-ALICE_IV = get_random_bytes(16) 
-BOB_IV = get_random_bytes(16)
+BOBS_MESSAGE = "Hi Alice!"
+IV = get_random_bytes(16) 
+
 
 
 #def compute_shared_key(secret_key, common_key, generator): # returns the final shared key
@@ -59,20 +59,37 @@ def main():
 
     #Encrypt Alice's Message
     alice_encoded_message = ALICES_MESSAGE.encode() #encode to bytes
-    alice_cipher = AES.new(alices_key, AES.MODE_CBC, ALICE_IV)
+    alice_cipher = AES.new(alices_key, AES.MODE_CBC, IV)
     alice_length = 16 - (len(alice_encoded_message) % 16)
     alice_padded = alice_encoded_message + bytes([alice_length]) * alice_length
     alice_ciphertext = alice_cipher.encrypt(alice_padded)
     print("Alice's message: " , ALICES_MESSAGE)
-    print("Alice's IV: ", ALICE_IV)
+    print("Alice's IV: ", IV)
     print("Alice's ciphertext: " , alice_ciphertext.hex())
 
     #decrypting Alice's message
-    alice_decrypt_cipher = AES.new(bobs_key, AES.MODE_CBC, ALICE_IV)
+    alice_decrypt_cipher = AES.new(bobs_key, AES.MODE_CBC, IV)
     alice_decrypted = alice_decrypt_cipher.decrypt(alice_ciphertext)
-    decrypt_pad_len = alice_decrypted[-1]
-    alice_plaintext = alice_decrypted[:-decrypt_pad_len].decode()
+    alice_decrypt_pad_len = alice_decrypted[-1]
+    alice_plaintext = alice_decrypted[:-alice_decrypt_pad_len].decode()
     print("Decrypted message: " , alice_plaintext)
+
+    #Encrypt Bob's Message
+    bob_encoded_message = BOBS_MESSAGE.encode() #encode to bytes
+    bob_cipher = AES.new(bobs_key, AES.MODE_CBC, IV)
+    bob_length = 16 - (len(bob_encoded_message) % 16)
+    bob_padded = bob_encoded_message + bytes([bob_length]) * bob_length
+    bob_ciphertext = bob_cipher.encrypt(bob_padded)
+    print("Bob's message: " , BOBS_MESSAGE)
+    print("Bob's IV: ", IV)
+    print("Bob's ciphertext: " , bob_ciphertext.hex())
+
+    #decrypting Alice's message
+    bob_decrypt_cipher = AES.new(alices_key, AES.MODE_CBC, IV)
+    bob_decrypted = bob_decrypt_cipher.decrypt(bob_ciphertext)
+    bob_decrypt_pad_len = bob_decrypted[-1]
+    bob_plaintext = bob_decrypted[:-bob_decrypt_pad_len].decode()
+    print("Decrypted message: " , bob_plaintext)
 
 
 
