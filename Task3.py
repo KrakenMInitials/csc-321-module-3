@@ -84,6 +84,18 @@ def aes_cbc_decrypt(ct, key_32):
     return pt[:-pad_len]
 # endregion 
 
+def calcuate_sig_scheme(d1, d2, n):
+    d3 = (d1 * d2) % n
+    #d3 will have some m3 = m2 * m1 % n mathematically?
+    #m3 will not be human readable nor editable nor intentional
+    #but its enough to cause malicious integrity failing
+    return d3 
+
+# Verify textbook RSA signature: check sig^e mod n == m
+def verify_signature(signature_int, message_int, pub):
+    n, e = pub["n"], pub["e"]
+    return pow(signature_int, e, n) == (message_int % n)
+
 def main():
     keypair = generate_rsa(BIT_LENGTH)
     pub = {"n": keypair["n"], "e": keypair["e"]}
@@ -119,6 +131,32 @@ def main():
     k_mallory = sha256(int_to_bytes(r)).digest()
     recovered = aes_cbc_decrypt(c0, k_mallory)
     print("Mallory decrypts c0 and recovers:", recovered.decode())
+    
+    #DEMO SIG FORGING
+    m1 = bytes_to_int(b"Hi Bob This is Alice")
+    m2 = bytes_to_int(b"How are you doing?")
+    
+    sig1 = pow(m1, priv["d"], pub["n"])
+    sig2 = pow(m2, priv["d"], pub["n"])
+    
+    sig3 = calcuate_sig_scheme(sig1, sig2, pub["n"])
+    
+    # Verify using m3 = m1*m2 mod n
+    m3 = (m1 * m2) % pub["n"]
+    print("sig1 valid:", verify_signature(sig1, m1, pub))
+    print("sig2 valid:", verify_signature(sig2, m2, pub))
+    print("sig3 valid (forged):", verify_signature(sig3, m3, pub))
+    
+    m3_from_sig = pow(sig3, pub["e"], pub["n"])  # should equal m3
+    assert m3_from_sig == m3
+    
+    print(verify_signature(sig1, m1, pub)) 
+    print(verify_signature(sig2, m2, pub)) 
+    print(verify_signature(sig3, m3, pub)) 
+
+    print("All signatures verified.")
+    
 
 if __name__ == "__main__":
     main()
+
